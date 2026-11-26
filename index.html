@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Round 5: Zeus as an AI chat, describe step = "Settle" (Hyun's pick from round 4). Reading motion after the
+   Particles 3D set (Awwwards, god library): the sentence itself cracks into the dots of a ring, each phrase Zeus picked up
+   condenses in the middle, then streams into the plan lines it implies. Home after Contra, chat after Plane AI
+   (Mobbin). Look stays P (Lightfield). Zeus infers the plan from a vague sentence (lock zeus-infers). Demo data. */
+:root { --bg: #fff; --side: #f7f7f6; --raise: #fff; --fill: #f3f3f1; --fill2: #fafaf9; --ink: #1b1b1d; --onink: #fff; --text2: #3c3c40; --dim: #6f6f74; --faint: #a1a1a6; --line: #ececea; --hov: #f6f6f5; --sel: #f1f1ef; --side-hov: #efefed; --side-on: #ebebe9; --focus: #d4d4d0; --off: #e3e3e0; --ok: #2e7d57; --okbg: #e9f4ee; --acc: #1b1b1d; --onacc: #fff; --shade: rgba(0,0,0,.25); --e: cubic-bezier(.2,.8,.2,1); color-scheme: light; }
+/* A · Storm: Zeus's own dark tokens (zeus/DESIGN.md, --k4-*) */
+:root[data-t="a"] { --bg: #151518; --side: #101013; --raise: #1b1b1f; --fill: #26262a; --fill2: #18181b; --ink: #eaeaee; --onink: #151518; --text2: #b8b8bf; --dim: #9b9ba3; --faint: #6e6e77; --line: #26262a; --hov: #222226; --sel: #2a2a2f; --side-hov: #19191c; --side-on: #1e1e22; --focus: #3b3b42; --off: #2c2c31; --ok: #8fcba3; --okbg: rgba(143,203,163,.12); --acc: #eaeaee; --onacc: #151518; --shade: rgba(0,0,0,.6); color-scheme: dark; }
+/* B · Ember: warm charcoal, paper-white ink */
+:root[data-t="b"] { --bg: #161412; --side: #110f0e; --raise: #1d1a17; --fill: #2a2622; --fill2: #1a1815; --ink: #ece6dc; --onink: #161412; --text2: #c4bcb0; --dim: #9e958a; --faint: #706960; --line: #2a2622; --hov: #24211d; --sel: #2d2925; --side-hov: #1a1714; --side-on: #221f1b; --focus: #403a34; --off: #2f2b27; --ok: #a9c59b; --okbg: rgba(169,197,155,.12); --acc: #dcc199; --onacc: #1d1813; --shade: rgba(0,0,0,.6); color-scheme: dark; }
+/* C · Tide: deep muted navy, blue-grey ink */
+:root[data-t="c"] { --bg: #0e121a; --side: #0a0d14; --raise: #131925; --fill: #1d2431; --fill2: #10151e; --ink: #e3e8f1; --onink: #0e121a; --text2: #b5bfd0; --dim: #8b96a9; --faint: #5f6a7d; --line: #1e2633; --hov: #19202c; --sel: #212a38; --side-hov: #10141c; --side-on: #161c27; --focus: #334055; --off: #232b38; --ok: #8cc5b0; --okbg: rgba(140,197,176,.12); --acc: #a9c2e8; --onacc: #0e121a; --shade: rgba(0,0,0,.6); color-scheme: dark; }
+.lab { display: flex; gap: 2px; margin: 8px 6px 2px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--raise); }
+.lab button { flex: 1; height: 24px; border-radius: 6px; font-size: 11px; color: var(--dim); }
+.lab button.on { background: var(--sel); color: var(--ink); font-weight: 500; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--ink); font: 13px/1.5 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.app { display: grid; grid-template-columns: 248px minmax(0, 1fr); height: 100vh; }
+
+.side { background: var(--side); border-right: 1px solid var(--line); padding: 12px 10px; display: flex; flex-direction: column; gap: 1px; overflow: auto; }
+.ws { display: flex; align-items: center; gap: 8px; padding: 4px 8px 12px; font-weight: 500; }
+.ws i { width: 20px; height: 20px; border-radius: 5px; background: var(--ink); color: var(--onink); font-style: normal; font-size: 11px; display: grid; place-items: center; }
+.newjob { margin: 0 2px 8px; height: 32px; border: 1px solid var(--line); border-radius: 8px; background: var(--raise); display: flex; align-items: center; gap: 8px; padding: 0 10px; font-weight: 500; }
+.newjob:hover { background: var(--hov); }
+.side h6 { font-size: 11px; font-weight: 500; color: var(--faint); padding: 12px 8px 4px; }
+.side a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px; border-radius: 6px; color: var(--text2); text-decoration: none; cursor: pointer; min-width: 0; }
+.side a:hover { background: var(--side-hov); }
+.side a.on { background: var(--side-on); color: var(--ink); font-weight: 500; }
+.side a span { color: var(--faint); font-size: 12px; font-weight: 400; }
+#jobs a { white-space: nowrap; }
+#jobs a .t { overflow: hidden; text-overflow: ellipsis; color: inherit; font-size: 13px; font-weight: inherit; }
+.side .low { margin-top: auto; }
+.side .ref { font-size: 11px; color: var(--faint); padding: 10px 8px 2px; }
+
+.main { position: relative; min-width: 0; overflow: hidden; }
+.v { position: absolute; inset: 0; display: none; }
+.v.show { display: flex; }
+.bar { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 16px; border-bottom: 1px solid var(--line); flex: none; }
+.bar b { font-weight: 500; }
+.bar .crumb { color: var(--dim); }
+.sp { flex: 1; }
+.b2 { white-space: nowrap; height: 30px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; color: var(--text2); background: var(--raise); }
+.b2:hover { background: var(--hov); }
+.pri { white-space: nowrap; height: 32px; padding: 0 14px; border-radius: 8px; background: var(--acc); color: var(--onacc); font-weight: 500; transition: transform .15s; }
+.pri:active { transform: scale(.97); }
+
+/* home */
+.home { flex-direction: column; align-items: center; justify-content: center; padding: 24px 24px 9vh; }
+.hwrap { width: min(620px, 100%); display: grid; gap: 14px; }
+.hwrap h1 { font-size: 22px; font-weight: 600; letter-spacing: -.01em; text-align: center; margin-bottom: 10px; }
+.start { display: grid; grid-template-columns: 164px 1fr auto; align-items: center; gap: 22px; text-align: left; padding: 12px 22px 12px 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--raise); box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 14px 34px -20px var(--shade); transition: transform .35s var(--e), box-shadow .35s; }
+.start:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 20px 40px -20px var(--shade); }
+.start canvas { width: 164px; height: 124px; border-radius: 11px; background: var(--fill2); display: block; }
+.start b { display: block; font-size: 16px; font-weight: 600; margin-bottom: 3px; }
+.start span { color: var(--dim); display: block; max-width: 330px; }
+.start .go { font-style: normal; width: 32px; height: 32px; border-radius: 50%; background: var(--acc); color: var(--onacc); display: grid; place-items: center; transition: transform .35s var(--e); }
+.start:hover .go { transform: translateX(3px); }
+.start.nudge { animation: nudge .7s var(--e); }
+@keyframes nudge { 30% { transform: translateY(-3px) scale(1.015); box-shadow: 0 0 0 4px var(--sel), 0 20px 40px -20px var(--shade); } }
+.composer { border: 1px solid var(--line); border-radius: 14px; background: var(--raise); padding: 12px 12px 10px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; box-shadow: 0 8px 24px -18px var(--shade); }
+.composer textarea { border: 0; outline: 0; resize: none; font: inherit; font-size: 14px; height: 46px; background: transparent; color: var(--ink); }
+.composer textarea::placeholder { color: var(--faint); }
+.send { width: 30px; height: 30px; border-radius: 50%; background: var(--acc); color: var(--onacc); display: grid; place-items: center; }
+.composer.locked { background: var(--fill2); cursor: not-allowed; box-shadow: none; }
+.composer.locked .ph0 { color: var(--faint); font-size: 14px; height: 46px; }
+.composer.locked .send { background: var(--off); cursor: not-allowed; }
+.locknote { font-size: 12px; color: var(--faint); text-align: center; }
+.morph { position: fixed; z-index: 45; background: var(--raise); border: 1px solid var(--line); border-radius: 16px; pointer-events: none; }
+
+/* describe: one short sentence */
+.describe { flex-direction: column; }
+.stage { position: relative; flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; gap: 32px; padding: 20vh 48px 48px; }
+.ask { width: min(720px, 100%); display: grid; gap: 14px; }
+.askh { font-size: 22px; font-weight: 600; letter-spacing: -.01em; text-align: center; margin-bottom: 4px; }
+.pbar { position: relative; display: grid; grid-template-columns: 44px 1fr 36px; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 18px; background: var(--raise); padding: 10px 10px 10px 12px; box-shadow: 0 18px 40px -26px var(--shade); transition: border-color .2s, box-shadow .3s; }
+.pbar:focus-within { border-color: var(--focus); box-shadow: 0 22px 48px -26px var(--shade); }
+#orb { width: 44px; height: 44px; display: block; }
+.ed { font-size: 17px; line-height: 1.55; outline: 0; min-height: 26px; max-height: 160px; overflow: auto; white-space: pre-wrap; }
+.ph { position: absolute; left: 68px; right: 58px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 17px; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph::after { content: ""; display: inline-block; width: 1px; height: 18px; background: var(--faint); margin-left: 2px; vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+.pbar.has .ph { display: none; }
+@keyframes blink { 50% { opacity: 0; } }
+.go2 { width: 36px; height: 36px; border-radius: 50%; background: var(--acc); color: var(--onacc); display: grid; place-items: center; transition: transform .2s var(--e), background .2s; }
+.go2:disabled { background: var(--off); cursor: default; }
+.go2:not(:disabled):hover { transform: translateX(2px); }
+.tries { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: var(--faint); }
+.try { height: 28px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--raise); color: var(--text2); }
+.try:hover { background: var(--hov); }
+.hint { text-align: center; color: var(--faint); font-size: 12px; }
+.tz { display: none; position: absolute; z-index: 2; left: 50%; top: 7vh; transform: translateX(-50%); width: min(640px, calc(100% - 32px)); height: min(520px, 62vh); }
+.tz .heard { position: absolute; left: 0; right: 0; text-align: center; color: var(--faint); font-size: 12px; opacity: 0; transition: opacity .3s; }
+.cuetxt { position: absolute; left: 50%; transform: translate(-50%, -50%); font-size: 22px; font-weight: 500; white-space: nowrap; opacity: 0; pointer-events: none; }
+.skip { position: absolute; bottom: 0; z-index: 3; left: 50%; transform: translateX(-50%); color: var(--faint); font-size: 12px; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--focus); }
+.plancol { position: relative; z-index: 1; width: min(540px, 100%); display: none; }
+.stage.s-read, .stage.s-done { padding-top: 7vh; }
+.stage.s-read .ask, .stage.s-done .ask { display: none; }
+.stage.s-read .tz { display: block; }
+.stage.s-read .plancol, .stage.s-done .plancol { display: block; }
+.pl { border: 1px solid var(--line); border-radius: 16px; background: var(--raise); padding: 20px 22px 18px; box-shadow: 0 14px 34px -24px var(--shade); transition: border-color .6s, box-shadow .6s; }
+.pl.ghost { border-color: transparent; box-shadow: none; background: transparent; transition: border-color .6s, box-shadow .6s, background .6s; }
+.pl.ghost.framed { background: var(--raise); }
+.pl.ghost.framed { border-color: var(--line); box-shadow: 0 14px 34px -24px var(--shade); }
+.pl.ghost [data-cue] { opacity: 0; }
+.pl.ghost [data-cue].shown { opacity: 1; transition: opacity .5s; }
+.pl h3 { font-size: 15px; font-weight: 600; }
+.pl .sub { color: var(--dim); margin-top: 2px; }
+.pl dl { display: grid; grid-template-columns: 84px 1fr; margin-top: 12px; }
+.pl dt { color: var(--dim); padding: 4px 0; }
+.pl dd { padding: 4px 0; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.pl h6 { font-size: 11px; font-weight: 500; color: var(--faint); margin: 14px 0 2px; }
+.pl h6 small { font-size: 11px; font-weight: 400; }
+.pl ul { list-style: none; }
+.pl li { display: flex; align-items: center; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.pl li:last-child { border-bottom: 0; }
+.why { margin-left: auto; color: var(--faint); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%; flex: none; }
+.pl dd > span:first-child { min-width: 0; }
+.pl li .x { opacity: 0; color: var(--faint); width: 20px; height: 20px; border-radius: 5px; flex: none; }
+.pl li:hover .x { opacity: 1; }
+.pl li .x:hover { background: var(--hov); color: var(--ink); }
+.pl ul.rv li { color: var(--dim); }
+.pl .fine { font-size: 12px; color: var(--faint); margin-top: 12px; }
+.pl .acts { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; }
+.edhint { color: var(--faint); font-size: 12px; }
+.pl .lbl { border-radius: 5px; padding: 1px 6px; margin: -1px -6px; outline: 0; cursor: text; min-width: 40px; transition: background .15s, box-shadow .15s; }
+.pl .lbl:hover { background: var(--hov); }
+.pl .lbl:focus { background: var(--raise); box-shadow: 0 0 0 1px var(--focus), 0 2px 8px -4px rgba(0,0,0,.12); }
+.pl .lbl:empty::before { content: attr(data-ph); color: var(--faint); }
+.why.you { color: var(--dim); }
+.addl { color: var(--faint); font-size: 12px; padding: 6px 0 0; }
+.addl:hover { color: var(--ink); }
+.ghostbar { position: fixed; z-index: 39; border: 1px solid var(--line); border-radius: 18px; background: var(--raise); box-shadow: 0 18px 40px -26px var(--shade); pointer-events: none; }
+#pcv { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 40; }
+
+/* chat */
+.chat { flex-direction: row; }
+.ccol { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.thread { flex: 1; overflow: auto; padding: 26px 24px 24px; }
+.tin { width: min(860px, 100%); margin: 0 auto; display: grid; gap: 16px; }
+.msg.me { justify-self: end; background: var(--sel); border-radius: 12px; padding: 8px 12px; max-width: 72%; }
+.msg.z { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; }
+.zm { width: 22px; height: 22px; border-radius: 6px; background: var(--ink); display: grid; place-items: center; margin-top: 1px; }
+.msg.cont .zm { visibility: hidden; }
+.zm::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--onink); }
+.zb { display: grid; gap: 10px; min-width: 0; }
+.zb p { max-width: 640px; }
+.card { border: 1px solid var(--line); border-radius: 12px; background: var(--raise); overflow: hidden; }
+.pmsg { padding: 12px 14px; display: grid; gap: 8px; }
+.pmsg header { display: flex; align-items: center; gap: 8px; }
+.pmsg header b { font-weight: 500; }
+.pmsg header span { color: var(--faint); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { height: 24px; padding: 0 9px; border-radius: 6px; background: var(--fill); display: inline-flex; align-items: center; font-size: 12px; color: var(--text2); }
+.chips span.add { background: var(--okbg); color: var(--ok); }
+.run { padding: 12px 14px; display: grid; gap: 10px; }
+.run .srcs { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--dim); }
+.run .srcs span { display: inline-flex; align-items: center; gap: 7px; transition: color .3s; }
+.run .srcs span.done { color: var(--ink); }
+.run .srcs i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--focus); border-top-color: var(--ink); animation: spin .8s linear infinite; }
+.run .srcs span.done i { animation: none; border-color: var(--ok); background: var(--ok); box-shadow: inset 0 0 0 2px var(--raise); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.run .count { display: flex; flex-wrap: wrap; gap: 4px 18px; font-variant-numeric: tabular-nums; }
+.run .count b { font-weight: 600; }
+.bar2 { height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.bar2 div { height: 100%; width: 0; background: var(--ink); }
+.run.folded { padding: 0; border: 0; color: var(--faint); font-size: 12px; background: none; }
+.res .tabs { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); position: relative; }
+.tab { position: relative; z-index: 1; height: 28px; padding: 0 10px; border-radius: 7px; color: var(--dim); display: inline-flex; align-items: center; gap: 6px; transition: color .2s; }
+.tab.on { color: var(--ink); font-weight: 500; }
+.tab span { color: var(--faint); font-size: 12px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.tpill { position: absolute; top: 8px; height: 28px; border-radius: 7px; background: var(--sel); transition: left .32s cubic-bezier(.3,1.3,.5,1), width .32s cubic-bezier(.3,1.3,.5,1); }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 500; color: var(--dim); height: 34px; padding: 0 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { height: 40px; padding: 0 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 14px; }
+tr.r { cursor: pointer; transition: background .12s; }
+tr.r:hover { background: var(--hov); }
+tr.r.on { background: var(--sel); box-shadow: inset 2px 0 0 var(--acc); }
+td.n { font-weight: 500; }
+td.n .pill { margin-left: 10px; font-weight: 400; }
+td .d, td.d { color: var(--dim); }
+.vt { color: var(--ok); font-size: 11px; margin-left: 4px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px; background: var(--fill); color: var(--text2); font-size: 12px; }
+.pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.more { width: 100%; height: 36px; color: var(--dim); }
+.more:hover { background: var(--hov); color: var(--ink); }
+.sugs { display: grid; max-width: 520px; }
+.sugs h6 { font-size: 11px; font-weight: 500; color: var(--faint); margin-bottom: 2px; }
+.sugs button { text-align: left; padding: 7px 0; border-bottom: 1px solid var(--line); color: var(--text2); display: flex; gap: 10px; }
+.sugs button::before { content: "↳"; color: var(--faint); }
+.sugs button:hover { color: var(--ink); }
+.think { display: flex; gap: 4px; padding: 8px 0; }
+.think i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); animation: th 1s infinite ease-in-out; }
+.think i:nth-child(2) { animation-delay: .15s; } .think i:nth-child(3) { animation-delay: .3s; }
+@keyframes th { 50% { opacity: .25; transform: translateY(-2px); } }
+.cdock { padding: 0 24px 18px; flex: none; }
+.cdock .composer { width: min(860px, 100%); margin: 0 auto; }
+
+.pane { width: 440px; flex: none; border-left: 1px solid var(--line); display: none; flex-direction: column; background: var(--raise); }
+.chat.withpane .pane { display: flex; }
+.ph2 { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; border-bottom: 1px solid var(--line); color: var(--dim); flex: none; }
+.ib { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; color: var(--dim); }
+.ib:hover { background: var(--hov); }
+.pbody { flex: 1; overflow: auto; padding: 20px 22px 24px; }
+.pbody h2 { font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+.props { margin-top: 12px; display: grid; grid-template-columns: 110px 1fr; }
+.props dt { color: var(--dim); padding: 4px 0; }
+.props dd { padding: 4px 0; }
+.fieldbox { margin: 16px 0 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--fill2); position: relative; overflow: hidden; }
+.fieldbox canvas { display: block; width: 100%; height: 210px; }
+.flegend { position: absolute; left: 14px; bottom: 12px; display: grid; gap: 2px; font-size: 11px; color: var(--faint); }
+.flegend i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+.sec h6 { font-size: 11px; font-weight: 500; color: var(--faint); margin: 18px 0 4px; }
+.recs { list-style: none; }
+.recs li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .15s, padding .2s; }
+.recs li:hover { background: var(--hov); }
+.recs li.on { box-shadow: inset 2px 0 0 var(--acc); padding-left: 10px; }
+.recs li b { font-weight: 500; display: block; }
+.recs li span { color: var(--dim); font-size: 12px; }
+.recs .rt { text-align: right; white-space: nowrap; }
+.recs .rt b { font-variant-numeric: tabular-nums; }
+.ck { list-style: none; }
+.ck li { display: flex; justify-content: space-between; padding: 5px 0; }
+.ck li em { font-style: normal; color: var(--ok); }
+.ck li em.no { color: var(--faint); }
+.pa { display: flex; gap: 8px; padding: 12px 22px; border-top: 1px solid var(--line); flex: none; }
+.pa .pri { flex: 1; }
+.mbar { display: none; }
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .mbar { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 12px; border-bottom: 1px solid var(--line); position: absolute; top: 0; left: 0; right: 0; z-index: 2; background: var(--raise); }
+  .mbar .ws { padding: 0; }
+  .v { top: 48px; }
+  .home { padding: 16px 16px 12vh; }
+  .start { grid-template-columns: 1fr auto; padding: 12px 16px 14px 12px; gap: 14px; }
+  .start canvas { grid-column: 1 / -1; width: 100%; height: 110px; }
+  .stage { padding: 12vh 16px 60px; }
+  .stage.s-read, .stage.s-done { flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 12px 16px 60px; gap: 8px; }
+  .tz { top: 12px; height: 300px; }
+  .plancol { width: 100%; }
+  .why { order: 3; flex-basis: 100%; margin-left: 0; max-width: none; margin-top: -2px; }
+  .pl li { flex-wrap: wrap; row-gap: 0; }
+  .pl li .x { margin-left: auto; }
+  .pl dd { flex-wrap: wrap; row-gap: 0; }
+  .ph { font-size: 15px; }
+  .ed { font-size: 16px; }
+  .bar .b2.hm { display: none; }
+  .thread { padding: 18px 12px; }
+  .cdock { padding: 0 12px 14px; }
+  .msg.me { max-width: 88%; }
+  .msg.z { grid-template-columns: 1fr; gap: 6px; }
+  .msg.z .zm { display: none; }
+  .res th:nth-child(3), .res td:nth-child(3), .res th:nth-child(4), .res td:nth-child(4) { display: none; }
+  .pane { position: fixed; inset: 48px 0 0 0; width: auto; z-index: 30; }
+}
+</style>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side">
+    <div class="ws"><i>Q</i>Quanta Cloud</div>
+    <button class="newjob" id="newjob">＋ New job</button>
+    <a href="#home" data-nav="home">Today</a>
+    <h6>Jobs</h6>
+    <div id="jobs"></div>
+    <div class="low">
+      <a href="#intros" data-nav="intros">Introductions<i class="ndot" id="ndot" hidden></i></a>
+      <a href="#challenges" data-nav="challenges">Challenges</a>
+      <a href="#settings" data-nav="settings">Settings</a>
+      <div class="lab" title="Colour scheme"><button data-t="a">Storm</button><button data-t="b">Ember</button><button data-t="c">Tide</button><button data-t="l">Light</button></div>
+    </div>
+  </aside>
+  <main class="main" id="main">
+    <div class="mbar"><button class="ib" id="menu" title="Menu">☰</button><div class="ws"><i>Q</i>Quanta Cloud</div><span class="sp"></span><button class="b2" id="mnew">＋ New job</button></div>
+
+    <section class="v home show" id="home">
+      <div class="hwrap">
+        <h1>Who are you hiring?</h1>
+        <button class="start" id="start"><canvas id="mini"></canvas><div><b>Describe a job</b><span>A sentence is enough. Zeus works out what to look for and shows you how it read you.</span></div><i class="go">→</i></button>
+        <div class="composer locked" id="lockbox"><div class="ph0">Ask Zeus to find, compare or save people</div><span class="send">↑</span></div>
+        <p class="locknote">Each job has its own chat. Open one on the left, or describe a new one.</p>
+        <div class="needs" id="needs"></div>
+      </div>
+    </section>
+
+    <section class="v describe" id="describe">
+      <div class="bar"><button class="b2" id="back">← Back</button><span class="crumb">New job</span></div>
+      <div class="stage" id="stage">
+        <div class="ask" id="askbox">
+          <p class="askh">Who do you need?</p>
+          <div class="pbar" id="pbar"><canvas id="orb"></canvas><div class="ed" id="ed" contenteditable="plaintext-only" spellcheck="false"></div><span class="ph" id="ph"></span><button class="go2" id="read" disabled title="Read it">→</button></div>
+          <div class="tries"><span>Try</span><button class="try" id="try1">a sharp intern for our storage team next summer</button><button class="try" id="try2">someone great at algorithms for quant research</button></div>
+          <p class="hint">Say it however you'd say it to a colleague. You'll see how Zeus read it before anything runs.</p>
+        </div>
+        <div class="tz" id="tz"><p class="heard" id="heard">Picked up</p><button class="skip" id="skip">Skip</button></div>
+        <div class="plancol" id="plancol"></div>
+      </div>
+    </section>
+
+    <section class="v chat" id="chat">
+      <div class="ccol">
+        <div class="bar jbar"><b id="ctitle"></b><span id="jst"></span><nav class="jtabs" id="jtabs"></nav><span class="sp"></span><button class="b2 hm" id="share">Share with hiring manager</button></div>
+        <div class="thread" id="thread"></div>
+        <div class="jview" id="jview" hidden></div>
+        <div class="cdock"><div class="composer" id="composer"><textarea id="ask" placeholder="Ask Zeus to narrow, compare or save people"></textarea><button class="send" id="sendb">↑</button></div></div>
+      </div>
+      <aside class="pane" id="pane"></aside>
+    </section>
+
+    <section class="v pg" id="intros"></section>
+    <section class="v pg" id="challenges"></section>
+    <section class="v pg" id="settings"></section>
+  </main>
+</div>
+<div class="mscrim" id="mscrim"></div>
+<div class="scrim" id="scrim" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="data.js"></script>
+<script>
+const Q = s => document.querySelector(s), QA = s => [...document.querySelectorAll(s)]
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim()
+let DOT = "27,27,29", THEME = new URLSearchParams(location.search).get("t") || "a"
+function setTheme(t) {
+  THEME = t; if (t === "l") document.documentElement.removeAttribute("data-t"); else document.documentElement.dataset.t = t
+  const ink = cssv("--acc"), h = ink.replace("#", ""); DOT = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)).join(",")
+  BAND = bandFor(t)
+  QA(".lab button").forEach(b => b.classList.toggle("on", b.dataset.t === t))
+  const u = new URL(location.href); u.searchParams.set("t", t); history.replaceState(null, "", u)
+}
+function bandFor(t) { return t === "l" ? [[205, 205, 200], [196, 150, 112], [170, 178, 188], [199, 166, 92]] : [[88, 88, 94], [196, 150, 112], [170, 178, 188], [205, 172, 98]] }
+setTheme(THEME)
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, EASE = "cubic-bezier(.2,.8,.2,1)"
+const TEMPO = 1.2
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms * TEMPO))
+;(() => { const an = Element.prototype.animate; Element.prototype.animate = function (k, o) { if (typeof o === "number") o *= TEMPO; else if (o) { o = { ...o }; if (o.duration) o.duration *= TEMPO; if (o.delay) o.delay *= TEMPO } return an.call(this, k, o) } })()
+const GA = Math.PI * (3 - Math.sqrt(5))
+const phone = () => innerWidth < 760
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+const clamp = k => k < 0 ? 0 : k > 1 ? 1 : k
+const io3 = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]] } return a }
+
+// ---------- people (a new job: nobody has a status yet; everyone listed is free June to August) ----------
+const EXTRA = [
+  { name: "Owen T. Fischer", place: 23, of: 350, comp: "IOI", event: "International Olympiad in Informatics", year: 2020, medal: "Gold", ver: "Official source", seasons: [2019, 2020] },
+  { name: "Hana Sato", place: 9, of: 410, comp: "USACO", event: "USACO US Open", year: 2024, medal: "Platinum", ver: "Organizer verified", seasons: [2023, 2024] },
+  { name: "Diego Alvarez", place: 28, of: 350, comp: "IOI", event: "International Olympiad in Informatics", year: 2023, medal: "Silver", ver: "Official source", seasons: [2022, 2023] },
+  { name: "Amara Okafor", place: 14, of: 410, comp: "USACO", event: "USACO US Open", year: 2022, medal: "Platinum", ver: "Organizer verified", seasons: [2021, 2022] },
+  { name: "Mei Lin Zhou", place: 21, of: 350, comp: "IOI", event: "International Olympiad in Informatics", year: 2024, medal: "Gold", ver: "Official source", seasons: [2023, 2024] },
+  { name: "Samuel K. Osei", place: 6, of: 410, comp: "USACO", event: "USACO US Open", year: 2023, medal: "Platinum", ver: "Organizer verified", seasons: [2022, 2023] },
+]
+const ALL = []
+Z.groups.forEach((g, gi) => g.people.forEach(p => ALL.push({ ...p, g: gi, status: "" })))
+EXTRA.forEach(p => ALL.push({ ...p, g: 1, status: "" }))
+ALL.forEach(p => p.avail = "Jun–Aug")
+ALL.sort((a, b) => a.g - b.g || b.year - a.year)
+
+// ---------- Zeus reads a loose sentence and works out the plan ----------
+const PROMPTS = ["a sharp intern for our storage team next summer", "someone great at algorithms for quant research", "hands-on robotics intern for the fall, has competed before", "new grad who does well under contest pressure"]
+function infer(t) {
+  const cues = [], L = {}
+  const add = (re, keys) => { const m = re.exec(t); if (!m || !m[0].trim()) return; if (cues.some(c => m.index < c.i + c.len && c.i < m.index + m[0].length)) return; cues.push({ i: m.index, len: m[0].length, phrase: m[0].trim().replace(/[,.]$/, ""), keys }) }
+  const sys = /storage|backend|infra|database|distributed|systems|platform/i.test(t), quant = /quant|trading|finance|research/i.test(t) && !sys, hw = /robot|hardware|embedded/i.test(t)
+  add(/(?:really |very |super )?(?:good|great|strong|amazing) at (?:algorithms|problem[- ]solving|coding|competitive programming)|loves? (?:hard )?puzzles|\balgorithms?\b|competitive programm\w*|olympiads?|has competed(?: before)?|contest pressure/i, ["usaco", "ioi"])
+  add(/\b(?:sharp|brilliant|exceptional|standout|top-tier)\b/i, ["seasons"])
+  add(/\b(?:next |this )?(?:summer|fall|autumn|june|july|august)\b/i, ["when", "when2"])
+  add(/\b(?:(?:quant|research|robotics|hardware|software|engineering|storage|backend|hands-on)\s+)*(?:intern(?:ship)?|new grad)\b(?:[^,.]*?\b(?:team|group)\b)?|\bquant(?:itative)? research\b/i, ["role", ...(sys ? ["sys", "lang"] : quant ? ["prob"] : [])])
+  cues.sort((a, b) => a.i - b.i)
+  const fall = /fall|autumn/i.test(t)
+  L.role = /storage/i.test(t) ? "Software engineering intern, storage team" : sys ? "Software engineering intern, infrastructure" : quant ? "Quant research intern" : hw ? "Hardware intern, robotics" : /new grad/i.test(t) ? "Software engineer, new grad" : "Software engineering intern"
+  L.when = fall ? "September to December 2027" : "June to August 2027"; L.when2 = fall ? "Free September to December" : "Free June to August"
+  Object.assign(L, { usaco: "A verified USACO result", ioi: "A verified IOI result", indiv: "An individual result, not a team one", seasons: "Results in two seasons", sys: "Systems thinking", lang: "Writes Go, C++ or Rust", prob: "Comfortable with probability", comm: "Clear communication" })
+  const has = new Set(cues.flatMap(c => c.keys))
+  const added = ["usaco", "ioi", "seasons"].filter(k => !has.has(k)).concat(["indiv", "comm"])
+  return { cues, added, L, has, words: t.split(/\s+/).filter(Boolean).length, title: L.role.replace(/^\w/, c => c.toUpperCase()).replace("intern, storage team", "Intern, Storage").replace("Software engineering", "Software Engineering") }
+}
+function planHTML(inf) {
+  const cueOf = k => inf.cues.findIndex(c => c.keys.includes(k))
+  const dc = k => { const i = cueOf(k); return i < 0 ? "base" : i }
+  const why = k => { const i = cueOf(k); return `<span class="why">${i < 0 ? "Zeus added" : "“" + esc(inf.cues[i].phrase) + "”"}</span>` }
+  const lbl = (t, ph) => `<span class="lbl" contenteditable="plaintext-only" spellcheck="false" data-ph="${ph}">${t}</span>`
+  const li = k => `<li data-k="${k}" data-cue="${dc(k)}">${lbl(inf.L[k], "Describe it")}${why(k)}<button class="x" title="Remove">×</button></li>`
+  const look = ["usaco", "ioi", "indiv", "seasons"], rv = ["sys", "lang", "prob"].filter(k => inf.has.has(k)).concat("comm")
+  const hasWhen = inf.has.has("when"), n = 1 + (hasWhen ? 2 : 0) + look.length + rv.length
+  return `<div class="pl ghost" id="pl">
+    <h3 data-cue="base">Here's how Zeus read it</h3>
+    <p class="sub" data-cue="base">From your ${inf.words} words, Zeus worked out ${n} things.</p>
+    <dl><dt data-cue="${dc("role")}">Role</dt><dd data-k="role" data-cue="${dc("role")}">${lbl(inf.has.has("role") ? inf.L.role : "", "Add the role")}${inf.has.has("role") ? why("role") : `<span class="why">Zeus needs this</span>`}</dd>
+    ${hasWhen ? `<dt data-cue="${dc("when")}">When</dt><dd data-k="when" data-cue="${dc("when")}">${lbl(inf.L.when, "Add dates")}${why("when")}</dd>` : ""}</dl>
+    ${hasWhen ? `<h6 data-cue="base">Must have</h6><ul data-sec="must">${li("when2")}</ul>` : ""}
+    <h6 data-cue="base">Look for</h6><ul data-sec="look">${look.map(li).join("")}</ul><button class="addl" data-cue="base" data-ph="Something to look for">+ Add</button>
+    <h6 data-cue="base">Check in review <small>· results can't show these</small></h6><ul class="rv" data-sec="review">${rv.map(li).join("")}</ul><button class="addl" data-cue="base" data-ph="Something to check in review">+ Add</button>
+    <p class="fine" data-cue="base">Zeus only searches adults who opted in to be found, and never filters by age, school or protected traits.</p>
+    <div class="acts" data-cue="base"><span class="edhint">Click any line to change it.</span><button class="pri" id="ok">Looks right, search</button></div>
+  </div>`
+}
+
+// ---------- home: a small living field inside the start card ----------
+;(() => {
+  const cv = Q("#mini"), ctx = cv.getContext("2d"); let W, H, hov = 0, s = 1
+  const size = () => { const d = Math.min(2, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0) }
+  size(); addEventListener("resize", size)
+  Q("#start").addEventListener("pointerenter", () => hov = 1); Q("#start").addEventListener("pointerleave", () => hov = 0)
+  const N = 170
+  const draw = t => {
+    if (Q("#home").classList.contains("show")) {
+      ctx.clearRect(0, 0, W, H); s += ((hov ? .8 : 1) - s) * .07
+      const c = Math.min(W, H) * .46 / Math.sqrt(N) * s
+      for (let i = 0; i < N; i++) {
+        const q = i + .5, r = c * Math.sqrt(q), a = q * GA + (reduce ? 0 : t * .00016 * (1 - i / N * .6)), top = i < 14
+        ctx.beginPath(); ctx.arc(W / 2 + r * Math.cos(a), H / 2 + r * Math.sin(a), top ? 1.9 : 1.4, 0, 6.283); ctx.fillStyle = `rgba(${DOT},${top ? .55 + hov * .35 : .2})`; ctx.fill()
+      }
+    }
+    requestAnimationFrame(draw)
+  }
+  requestAnimationFrame(draw)
+})()
+Q("#lockbox").onclick = () => { const s = Q("#start"); s.classList.remove("nudge"); void s.offsetWidth; s.classList.add("nudge") }
+
+QA(".lab button").forEach(b => b.onclick = () => setTheme(b.dataset.t)); setTheme(THEME)
+// ---------- view switching ----------
+function show(id) { QA(".v").forEach(v => v.classList.toggle("show", v.id === id)) }
+async function openDescribe() {
+  if (!Q("#home").classList.contains("show")) { show("describe"); enterDescribe(); return }
+  const from = Q("#start").getBoundingClientRect(), to = Q("#main").getBoundingClientRect()
+  if (!reduce && !phone()) {
+    const m = document.createElement("div"); m.className = "morph"; document.body.appendChild(m)
+    Q("#home .hwrap").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" })
+    await m.animate([
+      { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: from.height + "px", borderRadius: "16px" },
+      { left: to.left + "px", top: to.top + "px", width: to.width + "px", height: to.height + "px", borderRadius: "0px", borderColor: "transparent" }],
+      { duration: 560, easing: "cubic-bezier(.6,0,.2,1)", fill: "forwards" }).finished
+    show("describe"); m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200 }).finished.then(() => m.remove())
+    Q("#home .hwrap").getAnimations().forEach(x => x.cancel())
+  } else show("describe")
+  enterDescribe()
+}
+Q("#start").onclick = openDescribe; Q("#newjob").onclick = openDescribe; Q("#mnew").onclick = openDescribe
+Q("#back").onclick = () => show(Q("#chat").dataset.ready ? "chat" : "home")
+
+// ---------- describe: one sentence, a listening orb, example prompts typing themselves ----------
+const ed = Q("#ed"), stage = Q("#stage"), readB = Q("#read"), pbar = Q("#pbar")
+const ORB = { cv: Q("#orb"), e: 0, rot: 0, N: 60, on: true }
+ORB.ctx = ORB.cv.getContext("2d")
+;(() => { const d = Math.min(2, devicePixelRatio || 1); ORB.cv.width = 44 * d; ORB.cv.height = 44 * d; ORB.ctx.setTransform(d, 0, 0, d, 0, 0) })()
+function orbDots() { const out = [], s = 1 + ORB.e * .12, c = 19 / Math.sqrt(ORB.N) * s; for (let i = 0; i < ORB.N; i++) { const q = i + .5, r = c * Math.sqrt(q), a = q * GA + ORB.rot; out.push([22 + r * Math.cos(a), 22 + r * Math.sin(a), i]) } return out }
+;(function orbDraw() {
+  requestAnimationFrame(orbDraw)
+  if (!Q("#describe").classList.contains("show") || !ORB.on) return
+  ORB.e *= .94; ORB.rot += reduce ? 0 : .004 + ORB.e * .05
+  const c = ORB.ctx; c.clearRect(0, 0, 44, 44)
+  orbDots().forEach(([x, y, i]) => { c.beginPath(); c.arc(x, y, i < 8 ? 1.5 : 1.15, 0, 6.283); c.fillStyle = `rgba(${DOT},${i < 8 ? .75 : .28 + ORB.e * .3})`; c.fill() })
+})()
+const orbPoints = () => { const r = ORB.cv.getBoundingClientRect(); return orbDots().flatMap(([x, y]) => [[r.left + x, r.top + y], [r.left + x + 1, r.top + y], [r.left + x, r.top + y + 1]]) }
+let phRun = 0
+async function placeholderLoop() {
+  const me = ++phRun, ph = Q("#ph")
+  if (reduce) { ph.textContent = PROMPTS[0]; return }
+  for (let i = 0; me === phRun; i++) {
+    const s = PROMPTS[i % PROMPTS.length]
+    for (let k = 0; k <= s.length && me === phRun; k++) { ph.textContent = s.slice(0, k); await wait(34) }
+    await wait(1800)
+    for (let k = s.length; k >= 0 && me === phRun; k--) { ph.textContent = s.slice(0, k); await wait(12) }
+    await wait(350)
+  }
+}
+function resetDescribe() { stage.className = "stage"; ed.contentEditable = "plaintext-only"; ed.textContent = ""; Q("#plancol").innerHTML = ""; onType(); ORB.on = true; ORB.cv.style.visibility = "" }
+function enterDescribe() {
+  resetDescribe(); placeholderLoop()
+  if (!reduce) Q("#askbox").animate([{ opacity: 0, transform: "translateY(12px)" }, { opacity: 1, transform: "none" }], { duration: 480, easing: EASE })
+  ed.focus()
+}
+function onType() { const has = ed.textContent.trim().length > 0; pbar.classList.toggle("has", has); readB.disabled = ed.textContent.trim().length < 6 }
+ed.addEventListener("input", () => { onType(); ORB.e = Math.min(1, ORB.e + .35) })
+ed.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); if (!readB.disabled) readB.click() } })
+async function typeIn(s) { ed.textContent = ""; ed.focus(); for (let k = 1; k <= s.length; k++) { ed.textContent = s.slice(0, k); onType(); ORB.e = Math.min(1, ORB.e + .12); await wait(22) } const r = document.createRange(); r.selectNodeContents(ed); r.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r) }
+Q("#try1").onclick = () => typeIn(Q("#try1").textContent)
+Q("#try2").onclick = () => typeIn(Q("#try2").textContent)
+let INF = null, SAID = ""
+readB.onclick = () => readSettle()
+
+// ---------- particles ----------
+function inkPoints(els, W, H, step = 2) {
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d"); x.fillStyle = "#000"; x.textBaseline = "middle"
+  els.forEach(el => {
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n
+    while ((n = w.nextNode())) {
+      if (n.parentElement.closest(".x")) continue
+      const cs = getComputedStyle(n.parentElement); x.font = `${cs.fontWeight} ${cs.fontSize} Inter, system-ui, sans-serif`
+      const r = document.createRange()
+      for (let i = 0; i < n.length; i++) { const ch = n.data[i]; if (ch === " ") continue; r.setStart(n, i); r.setEnd(n, i + 1); const b = r.getBoundingClientRect(); if (b.width && b.bottom > 0 && b.top < H) x.fillText(ch, b.left, b.top + b.height / 2) }
+    }
+  })
+  const d = x.getImageData(0, 0, W, H).data, pts = []
+  for (let y = 0; y < H; y += step) for (let xx = 0; xx < W; xx += step) if (d[(y * W + xx) * 4 + 3] > 110) pts.push([xx, y])
+  return pts
+}
+function pcanvas() {
+  const cv = document.createElement("canvas"); cv.id = "pcv"; document.body.appendChild(cv)
+  const W = innerWidth, H = innerHeight, dpr = Math.min(2, devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr
+  const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); return { cv, c, W, H }
+}
+let skipNow = false
+Q("#skip").onclick = () => skipNow = true
+
+// Reading, one continuous piece: the sentence's own dots lift off left to right and glide into a ring in a single
+// smooth flight; each phrase Zeus picked up gathers in the ring's hole and lets go; then the ring pours into the plan
+// card, which already sits where it will stay. Click anywhere or press Esc to skip.
+let readT0 = 0
+stage.addEventListener("click", () => { if (stage.classList.contains("s-read") && performance.now() - readT0 > 400) skipNow = true })
+addEventListener("keydown", e => { if (e.key === "Escape" && stage.classList.contains("s-read")) skipNow = true })
+async function readSettle() {
+  SAID = ed.textContent.trim(); const inf = INF = infer(SAID)
+  const W = innerWidth, H = innerHeight
+  const S = shuffle(inkPoints([ed], W, H, 1)), pr = pbar.getBoundingClientRect()
+  ed.blur(); phRun++; readT0 = performance.now(); Q("#skip").getAnimations().forEach(a => a.cancel())
+  // the bar's frame fades on its own; the words stay put as dots until their turn to lift off
+  if (!reduce && S.length) {
+    const g = document.createElement("div"); g.className = "ghostbar"; document.body.appendChild(g)
+    Object.assign(g.style, { left: pr.left + "px", top: pr.top + "px", width: pr.width + "px", height: pr.height + "px" })
+    g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }).finished.then(() => g.remove())
+  }
+  stage.classList.add("s-read"); ORB.on = false; stage.scrollTop = 0
+  Q("#plancol").innerHTML = planHTML(inf); wirePlan()
+  const tzEl = Q("#tz"), tz = tzEl.getBoundingClientRect(), cx = tz.left + tz.width / 2, cy = tz.top + tz.height * (phone() ? .44 : .46)
+  // the ring's hole is sized to the widest phrase; long phrases shrink on narrow screens so nothing touches the ring
+  const els = inf.cues.map(c => { const el = document.createElement("div"); el.className = "cuetxt"; el.textContent = c.phrase; el.style.top = (cy - tz.top) + "px"; tzEl.appendChild(el); return el })
+  const ws = els.map(el => el.getBoundingClientRect().width), maxW = Math.max(0, ...ws)
+  const rin = Math.max(100, Math.min(maxW / 2 + 30, tz.width / 2 - 50)), rout = rin + 44, SQ = .56
+  els.forEach((el, i) => { el.style.fontSize = Math.max(14, 22 * Math.min(1, 2 * (rin - 24) / (ws[i] || 1))) + "px" })
+  const C = els.map(el => { const p = inkPoints([el], W, H); el.remove(); return p })
+  Q("#heard").style.top = (cy - tz.top - 42) + "px"
+  const groups = inf.cues.map((_, i) => inkPoints(QA(`#pl [data-cue="${i}"]`), W, H))
+  const base = inkPoints(QA('#pl [data-cue="base"]'), W, H)
+  const reveal = sel => QA(sel).forEach(e => e.classList.add("shown"))
+  if (reduce || !S.length) { reveal("#pl [data-cue]"); Q("#pl").classList.add("framed"); finishRead(); return }
+  let minX = Infinity, maxX = -Infinity; for (const q of S) { if (q[0] < minX) minX = q[0]; if (q[0] > maxX) maxX = q[0] }
+  const span = Math.max(1, maxX - minX), P = []
+  const mk = (t, g, q) => {
+    const o = S[P.length % S.length]
+    P.push({ sx: o[0], sy: o[1], wd: (o[0] - minX) / span * 650 + Math.random() * 90, c0: (Math.random() - .5) * 120,
+      tx: t[0], ty: t[1], g, qx: q ? q[0] : 0, qy: q ? q[1] : 0, r: rin + (Math.random() + Math.random()) / 2 * (rout - rin),
+      a0: Math.random() * 6.283, w: .00045 + Math.random() * .0003, jd: Math.random() * 200, cu: (Math.random() - .5) * 140 })
+  }
+  groups.forEach((T, i) => { const Cp = C[i]; if (!T.length) return; const n = Math.min(4200, Math.max(T.length, Cp.length)); for (let j = 0; j < n; j++) mk(T[j % T.length], i, Cp[j % Cp.length]) })
+  base.forEach(b => mk(b, -1))
+  let minTy = Infinity, maxTy = -Infinity; for (const p of P) { if (p.ty < minTy) minTy = p.ty; if (p.ty > maxTy) maxTy = p.ty }
+  P.forEach(p => p.pd = (p.ty - minTy) / Math.max(1, maxTy - minTy) * 520 + p.jd * .6)
+  const FLY = 1250, D = 1250, s0 = 2150, sp = s0 + inf.cues.length * D + 450, POUR = 1300, END = sp + 640 + POUR + 150
+  const orbAt = (p, t) => [cx + p.r * Math.cos(p.a0 + p.w * t), cy + p.r * SQ * Math.sin(p.a0 + p.w * t)]
+  const bez = (ax, ay, bx, by, cu, k) => { const e = io3(k), u = 1 - e, mx = (ax + bx) / 2 + cu, my = (ay + by) / 2 - Math.abs(cu) * .5; return [u * u * ax + 2 * u * e * mx + e * e * bx, u * u * ay + 2 * u * e * my + e * e * by] }
+  const { cv, c } = pcanvas()
+  let framed = false, shownAll = false, heardFor = -1
+  const t0 = performance.now(); skipNow = false
+  const BK = [0, 1, 2, 3, 4, 5, 6].map(() => [])
+  await new Promise(done => {
+    const frame = now => {
+      const t = skipNow ? END + 1 : now - t0
+      if (!framed && t > sp) { framed = true; Q("#pl").classList.add("framed"); Q("#skip").animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: "forwards" }) }
+      if (!shownAll && t > sp + 640 + POUR * .8) { shownAll = true; reveal("#pl [data-cue]") }
+      const ci = Math.floor((t - s0) / D), into = t - s0 - ci * D
+      const hv = ci >= 0 && ci < inf.cues.length && into > 300 && into < 950
+      if (hv !== (heardFor === ci)) { Q("#heard").style.opacity = hv ? 1 : 0; heardFor = hv ? ci : -1 }
+      c.clearRect(0, 0, W, H); BK.forEach(b => b.length = 0)
+      for (const p of P) {
+        const [ox, oy] = orbAt(p, t), kf = (t - p.wd) / FLY
+        let x, y, a
+        if (kf <= 0) { x = p.sx; y = p.sy; a = .9 }
+        else if (kf < 1) { [x, y] = bez(p.sx, p.sy, ox, oy, p.c0, kf); a = .9 - .6 * io3(kf) }
+        else { x = ox; y = oy; a = .3 }
+        if (p.g >= 0) {
+          const s = s0 + p.g * D, k1 = clamp((t - s - p.jd * .4) / 600), k2 = clamp((t - s - 900 - p.jd * .3) / 650)
+          if (k2 > 0) { [x, y] = bez(p.qx, p.qy, ox, oy, p.cu * .4, k2); a = .85 - .55 * io3(k2) }
+          else if (k1 > 0) { const e = io3(k1); x += (p.qx - x) * e; y += (p.qy - y) * e; a = .3 + .55 * e }
+        }
+        const k3 = clamp((t - sp - p.pd) / POUR)
+        if (k3 > 0) { const [bx, by] = orbAt(p, sp + p.pd); [x, y] = bez(bx, by, p.tx, p.ty, p.cu, k3); a = .3 + .5 * io3(k3) }
+        BK[Math.min(6, Math.max(0, Math.round((a - .3) / .1)))].push(x, y)
+      }
+      BK.forEach((b, i) => { c.fillStyle = `rgba(${DOT},${(.3 + i * .1).toFixed(2)})`; for (let j = 0; j < b.length; j += 2) c.fillRect(b[j], b[j + 1], 1.3, 1.3) })
+      if (t < END) requestAnimationFrame(frame); else done()
+    }
+    requestAnimationFrame(frame)
+  })
+  Q("#pl").classList.add("framed"); reveal("#pl [data-cue]"); Q("#heard").style.opacity = 0
+  finishRead()
+  await cv.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 400, fill: "forwards" }).finished; cv.remove()
+}
+// the plan card never moves: reading ends with it already in place
+function finishRead() { stage.classList.replace("s-read", "s-done"); if (!stage.classList.contains("s-done")) stage.classList.add("s-done"); Q("#pl").classList.remove("ghost") }
+// the plan is edited in place: click a line to change it, Enter to finish, + Add for a new line, × to drop one
+function wirePlan() {
+  Q("#ok").onclick = goChat
+  const drop = li => li.animate([{ opacity: 1 }, { opacity: 0, transform: "translateX(12px)" }], { duration: 200 }).finished.then(() => li.remove())
+  const wire = lbl => {
+    const row = lbl.parentElement; lbl.dataset.orig = lbl.textContent
+    lbl.addEventListener("input", () => { const w = row.querySelector(".why"); if (w) { w.textContent = row.dataset.add ? "You added" : "You changed this"; w.classList.add("you") } })
+    lbl.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === "Escape") { e.preventDefault(); lbl.blur() } })
+    lbl.addEventListener("blur", () => {
+      lbl.textContent = lbl.textContent.replace(/\s+/g, " ").trim()
+      if (lbl.textContent) return
+      if (row.tagName === "LI") drop(row); else if (lbl.dataset.orig) { lbl.textContent = lbl.dataset.orig; const w = row.querySelector(".why"); if (w && !row.dataset.add) w.classList.remove("you") }
+    })
+  }
+  QA("#pl .lbl").forEach(wire)
+  QA("#pl .x").forEach(x => x.onclick = () => drop(x.closest("li")))
+  QA("#pl .addl").forEach(b => b.onclick = () => {
+    const ul = b.previousElementSibling, li = document.createElement("li"); li.dataset.add = 1; li.dataset.cue = "base"; li.className = "shown"
+    li.innerHTML = `<span class="lbl" contenteditable="plaintext-only" spellcheck="false" data-ph="${b.dataset.ph}"></span><span class="why you">You added</span><button class="x" title="Remove">×</button>`
+    ul.appendChild(li); wire(li.querySelector(".lbl")); li.querySelector(".x").onclick = () => drop(li)
+    if (!reduce) li.animate([{ opacity: 0, transform: "translateY(-4px)" }, { opacity: 1, transform: "none" }], { duration: 220, easing: EASE })
+    li.querySelector(".lbl").focus()
+  })
+}
+// plan → chat, one move: the plan's words become dots in place, the describe screen fades out beneath them, the chat
+// fades in, and the dots glide into the plan card in the thread, which fades up as they land
+async function pourInto(S, T, card) {
+  const dv = Q("#describe"), chv = Q("#chat")
+  if (reduce || !S.length || !T.length) { card.style.opacity = 1; dv.classList.remove("show"); return }
+  const { cv, c, W, H } = pcanvas(); shuffle(S); shuffle(T)
+  Q("#pl").style.visibility = "hidden"
+  dv.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 450, easing: "ease-out", fill: "forwards" }).finished.then(() => { dv.classList.remove("show"); dv.getAnimations().forEach(a => a.cancel()) })
+  chv.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 750, delay: 350, easing: EASE, fill: "backwards" })
+  let minY = Infinity, maxY = -Infinity; for (const p of S) { if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1] }
+  const N = Math.min(9000, Math.max(S.length, T.length)), FLY = 1400, P = []
+  for (let i = 0; i < N; i++) { const s = S[i % S.length], t = T[i % T.length]; P.push([s[0], s[1], t[0], t[1], (s[1] - minY) / Math.max(1, maxY - minY) * 500 + Math.random() * 150, (Math.random() - .5) * 180]) }
+  const t0 = performance.now(), LAST = 650 + FLY; let faded = false
+  await new Promise(done => {
+    const f = now => {
+      const el = now - t0; c.clearRect(0, 0, W, H); c.fillStyle = `rgba(${DOT},.8)`
+      for (const [sx, sy, tx, ty, dl, cu] of P) {
+        const e = io3(clamp((el - dl) / FLY)), u = 1 - e, mx = (sx + tx) / 2 + cu, my = (sy + ty) / 2 - 30 - Math.abs(cu) * .3
+        c.fillRect(u * u * sx + 2 * u * e * mx + e * e * tx, u * u * sy + 2 * u * e * my + e * e * ty, 1.3, 1.3)
+      }
+      if (!faded && el > LAST * .78) { faded = true; card.style.opacity = 1; card.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: "ease-out" }) }
+      if (el < LAST) requestAnimationFrame(f); else done()
+    }
+    requestAnimationFrame(f)
+  })
+  await cv.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 350, fill: "forwards" }).finished; cv.remove()
+  Q("#pl").style.visibility = ""
+}
+// ---------- chat ----------
+let tin = null, CUR = null
+const thread = Q("#thread"), PEOPLE = () => CUR ? CUR.people : ALL
+let planV = 1, lastRes = null, sel = null
+const down = () => thread.scrollTo({ top: thread.scrollHeight, behavior: reduce ? "auto" : "smooth" })
+function msg(html, me, still) {
+  const d = document.createElement("div"); d.className = "msg " + (me ? "me" : "z")
+  d.innerHTML = me ? html : `<i class="zm"></i><div class="zb">${html}</div>`
+  const prev = [...tin.children].reverse().find(x => !x.querySelector(".think")); if (!me && prev && prev.classList.contains("z")) d.classList.add("cont")
+  tin.appendChild(d); if (!reduce && !still) d.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: EASE }); down(); return d
+}
+async function thinking(ms = 800) { const d = msg(`<div class="think"><i></i><i></i><i></i></div>`); await wait(ms); d.remove() }
+
+async function goChat() {
+  const lineTxt = sel => QA(sel).map(e => e.textContent.trim()).filter(Boolean)
+  const chipsTxt = lineTxt('#pl ul[data-sec="must"] .lbl, #pl ul[data-sec="look"] .lbl'), roleTxt = (lineTxt('#pl dd[data-k="role"] .lbl')[0] || "")
+  const TITLE = roleTxt && roleTxt !== INF.L.role ? roleTxt.replace(/^\w/, c => c.toUpperCase()) : INF.title
+  const W = innerWidth, H = innerHeight, S = inkPoints(QA("#pl [data-cue]"), W, H, 2)
+  const first = !Q("#chat").dataset.ready
+  Q("#chat").dataset.ready = 1
+  newJob(TITLE, chipsTxt, first)
+  msg(esc(SAID), true, true)
+  const chip = t => `<span>${esc(t)}</span>`
+  const pm = msg(`<div class="card pmsg"><header><b>Search plan v${planV}</b><span>· read from what you said, you confirmed it</span></header><div class="chips">${chipsTxt.map(chip).join("")}</div></div>`, false, true)
+  const card = pm.querySelector(".card"); card.style.opacity = 0
+  await pourInto(S, inkPoints([card], W, H, 2), card)
+  await wait(350)
+  await runSearch(p => true, { all: 164, a: 23, b: 141 }, "Ordered by how many of the four things to look for each person meets, then by their most recent result.")
+  sugs(["Only results from 2021 or later", "Who also has a USACO result?", "Save the top five to this job"])
+}
+
+async function runSearch(filter, counts, line) {
+  const SRC = ["IOI official results", "USACO organizer feed", "Pantheon events"]
+  const r = msg(`<div class="card run"><div class="srcs">${SRC.map(s => `<span><i></i>${s}</span>`).join("")}</div><div class="count"><span><b class="c1">0</b> records checked</span><span><b class="c2">0</b> adults who opted in</span></div><div class="bar2"><div></div></div></div>`)
+  const run = r.querySelector(".run"), bar = run.querySelector(".bar2 div"), D = 1500
+  tick(run.querySelector(".c1"), 1204); tick(run.querySelector(".c2"), 612)
+  if (!reduce) bar.animate([{ width: "0%" }, { width: "100%" }], { duration: D, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }); else bar.style.width = "100%"
+  run.querySelectorAll(".srcs span").forEach((s, i) => setTimeout(() => s.classList.add("done"), reduce ? 0 : (350 + i * 420) * TEMPO))
+  await wait(D + 150)
+  run.className = "run folded"; run.textContent = `Searched ${SRC.length} approved sources · 1,204 records checked · just now`
+  const res = msg(`<p>${line}</p>`)
+  lastRes = resultsCard(res.querySelector(".zb"), filter, counts)
+}
+function tick(el, to) { const from = +(el.dataset.v || 0); el.dataset.v = to; if (reduce) { el.textContent = to.toLocaleString("en-US"); return } const t0 = performance.now(); const st = t => { const k = Math.min(1, (t - t0) / 600), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e).toLocaleString("en-US"); if (k < 1) requestAnimationFrame(st) }; requestAnimationFrame(st) }
+
+function resultsCard(host, filter, counts, quiet) {
+  const st = { tab: 0, open: false, filter }
+  const el = document.createElement("div"); el.className = "card res"; host.appendChild(el)
+  const list = () => PEOPLE().filter(st.filter).filter(p => st.tab === 0 || p.g === st.tab - 1)
+  function draw(stream) {
+    const L = list(), shown = st.open ? L : L.slice(0, 8)
+    el.innerHTML = `<div class="tabs"><span class="tpill"></span>${[["All", counts.all], ["Meets all 4", counts.a], ["Meets 3 of 4", counts.b]].map(([l, n], i) => `<button class="tab ${i === st.tab ? "on" : ""}" data-i="${i}">${l} <span class="tn" data-n="${n}">${stream ? 0 : n}</span></button>`).join("")}</div>
+      <table><thead><tr><th>Name</th><th>Best result</th><th>Competition</th><th>Seasons</th></tr></thead><tbody>${shown.map(p => `<tr class="r ${p.name === sel ? "on" : ""}" data-n="${p.name}"><td class="n">${p.name}<span class="st">${p.status ? `<span class="pill"><i class="dot"></i>${p.status}</span>` : ""}</span></td><td class="br">${best(p)}</td><td>${p.comp} ${p.year} <span class="d">· ${p.medal}</span></td><td class="d">${p.seasons.join(", ")}</td></tr>`).join("")}</tbody></table>
+      ${L.length > 8 ? `<button class="more">${st.open ? "Show fewer" : "Show all"}</button>` : ""}`
+    const pill = el.querySelector(".tpill"), on = el.querySelector(".tab.on")
+    pill.style.left = on.offsetLeft + "px"; pill.style.width = on.offsetWidth + "px"
+    el.querySelectorAll(".tab").forEach(b => b.onclick = () => { const old = el.querySelector(".tab.on"); st.tab = +b.dataset.i; draw(); const p = el.querySelector(".tpill"); p.style.transition = "none"; p.style.left = old.offsetLeft + "px"; p.style.width = old.offsetWidth + "px"; void p.offsetWidth; p.style.transition = ""; const nb = el.querySelector(".tab.on"); p.style.left = nb.offsetLeft + "px"; p.style.width = nb.offsetWidth + "px"; rise(el) })
+    el.querySelectorAll("tr.r").forEach(tr => tr.onclick = () => openPane(tr.dataset.n))
+    const mo = el.querySelector(".more"); if (mo) mo.onclick = () => { st.open = !st.open; draw(); if (st.open) rise(el, 8) }
+    if (stream) {
+      el.querySelectorAll(".tn").forEach(s => tick(s, +s.dataset.n))
+      el.querySelectorAll("tr.r").forEach((tr, i) => {
+        if (reduce) return
+        tr.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: i * 60, easing: EASE, fill: "backwards" })
+        const p = PEOPLE().find(x => x.name === tr.dataset.n), cell = tr.querySelector(".br"), t0 = performance.now() + i * 60
+        const step = t => { const k = Math.min(1, Math.max(0, (t - t0) / 650)), e = 1 - Math.pow(1 - k, 3); cell.innerHTML = best(p, Math.round(p.of + (p.place - p.of) * e)); if (k < 1) requestAnimationFrame(step) }
+        requestAnimationFrame(step)
+      })
+    }
+  }
+  draw(!quiet); if (!quiet) setTimeout(down, 50)
+  return { el, st, draw, list }
+}
+const best = (p, v = p.place) => `${p.tied ? "T-" : ""}${ord(v)} <span class="d">of ${p.of}</span> <span class="vt" title="${p.ver}">✓</span>`
+function rise(el, from = 0) { if (reduce) return; el.querySelectorAll("tr.r").forEach((tr, i) => i >= from && tr.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 300, delay: (i - from) * 22, easing: EASE, fill: "backwards" })) }
+
+function sugs(items) {
+  QA(".sugs").forEach(s => s.remove())
+  const host = tin.lastElementChild.querySelector(".zb") || msg("").querySelector(".zb")
+  const d = document.createElement("div"); d.className = "sugs"; d.innerHTML = `<h6>Try next</h6>${items.map(s => `<button>${s}</button>`).join("")}`
+  host.appendChild(d); d.querySelectorAll("button").forEach((b, i) => { b.onclick = () => ask(b.textContent); if (!reduce) b.animate([{ opacity: 0, transform: "translateX(-6px)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: 200 + i * 70, easing: EASE, fill: "backwards" }) })
+  setTimeout(down, 60)
+}
+async function ask(text) {
+  text = text.trim(); if (!text) return
+  QA(".sugs").forEach(s => s.remove()); msg(esc(text), true); await thinking()
+  if (/2021|recent|newer|later/i.test(text)) {
+    planV++; logPlan(["Results from 2021 or later"])
+    msg(`<div class="card pmsg"><header><b>Search plan v${planV}</b><span>· changed from v${planV - 1}</span></header><div class="chips"><span class="add">＋ Results from 2021 or later</span></div></div>`)
+    await wait(350)
+    await runSearch(p => p.year >= 2021, { all: 97, a: 14, b: 83 }, "Done. Older results no longer count, so people whose best result is from before 2021 dropped out.")
+    sugs(["Save the top five to this job", "Who also has a USACO result?"])
+  } else if (/compare/i.test(text)) {
+    const A = PEOPLE().find(p => p.name === "Rosa N. Chen"), B = PEOPLE().find(p => p.name === "Marcus E. Abara")
+    const row = (l, a, b) => `<tr><td class="d">${l}</td><td>${a}</td><td>${b}</td></tr>`
+    msg(`<p>Both meet all four things to look for. Rosa's result is newer and placed higher; Marcus has results in two competitions.</p><div class="card"><table><thead><tr><th></th><th>${A.name}</th><th>${B.name}</th></tr></thead><tbody>${row("Best result", best(A), best(B))}${row("Competition", `${A.comp} ${A.year} · ${A.medal}`, `${B.comp} ${B.year} · ${B.medal}`)}${row("Also has", "None", "USACO 2021 · Platinum")}${row("Seasons", A.seasons.join(", "), B.seasons.join(", "))}</tbody></table></div>`)
+    sugs(["Who also has a USACO result?", "Save the top five to this job"])
+  } else if (/usaco/i.test(text)) {
+    const d = msg(`<p>One person near the top has both: Marcus E. Abara, with IOI results in 2021 and 2022 and the USACO US Open in 2021.</p><div><button class="b2" id="om">Open Marcus E. Abara's record</button></div>`)
+    d.querySelector("#om").onclick = () => openPane("Marcus E. Abara")
+    sugs(["Save the top five to this job", "Only results from 2021 or later"])
+  } else if (/save/i.test(text)) {
+    const top = lastRes.list().slice(0, 5), fresh = top.filter(p => !p.status)
+    fresh.forEach(p => p.status = "Saved"); lastRes.draw()
+    fresh.forEach(p => { const pl = lastRes.el.querySelector(`tr[data-n="${p.name}"] .pill`); if (pl && !reduce) pl.animate([{ transform: "scale(0)" }, { transform: "none" }], { duration: 420, easing: "cubic-bezier(.3,1.6,.5,1)" }) })
+    bumpSaved()
+    msg(`<p>${fresh.length ? `Saved ${fresh.length === 5 ? "all five" : fresh.length + " of them"} to this job.` : "They were already saved."} Your hiring manager sees saved people when you share the job.</p>`)
+    sugs(["Who also has a USACO result?", "Only results from 2021 or later"])
+  } else {
+    msg(`<p>I can change the plan, check who has what, or save people to this job.</p>`)
+    sugs(["Only results from 2021 or later", "Who also has a USACO result?", "Save the top five to this job"])
+  }
+}
+function bumpSaved() { const n = ALL.filter(p => p.status === "Saved").length, s = Q("#saved"); if (!s) return; s.textContent = n || ""; if (!reduce) s.animate([{ transform: "scale(1.7)" }, { transform: "none" }], { duration: 480, easing: "cubic-bezier(.3,1.6,.5,1)" }) }
+Q("#sendb").onclick = () => { const v = Q("#ask").value; Q("#ask").value = ""; ask(v) }
+Q("#ask").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); Q("#sendb").click() } })
+
+// ---------- record pane with the competition field ----------
+var BAND = bandFor(THEME); const MAXN = 410
+const PF = { P: Array.from({ length: MAXN }, () => ({ c: BAND[0].slice() })), recs: [], cur: 0, from: 0, k: 1, travel: 1 }
+const band = (r, n) => { const f = n / r.of; return r.short !== "IOI" ? (f <= .1 ? 1 : 0) : f <= 1 / 12 ? 3 : f <= .25 ? 2 : f <= .5 ? 1 : 0 }
+function lay(r) { const W = PF.W, H = PF.H, cx = W * .6, cy = H * .5, c = Math.min(W * .28, H * .42) / Math.sqrt(r.of), o = []; for (let i = 0; i < MAXN; i++) { const q = Math.min(i, r.of - 1) + .5, rr = c * Math.sqrt(q), t = q * GA; o.push({ x: cx + rr * Math.cos(t), y: cy + rr * Math.sin(t), a: i < r.of ? 1 : 0, b: band(r, i + 1), s: c * .32 }) } return o }
+function pdraw(t) {
+  if (!PF.cv || !PF.cv.isConnected) return
+  const ctx = PF.ctx, W = PF.W, H = PF.H; ctx.clearRect(0, 0, W, H)
+  PF.k = Math.min(1, PF.k + (reduce ? 1 : .045)); PF.travel += (0 - PF.travel) * (reduce ? 1 : .05); if (PF.travel < .004) PF.travel = 0
+  const e = 1 - Math.pow(1 - PF.k, 3), A = lay(PF.recs[PF.from]), B = lay(PF.recs[PF.cur])
+  for (let i = 0; i < MAXN; i++) {
+    const p = PF.P[i], a = A[i], b = B[i], x = a.x + (b.x - a.x) * e, y = a.y + (b.y - a.y) * e, al = a.a + (b.a - a.a) * e
+    const col = BAND[b.b]; p.c = p.c.map((v, j) => v + (col[j] - v) * .1); if (al < .03) continue
+    ctx.beginPath(); ctx.arc(x, y, Math.max(1, b.s), 0, 6.283); ctx.fillStyle = `rgba(${p.c[0] | 0},${p.c[1] | 0},${p.c[2] | 0},${al})`; ctx.fill()
+  }
+  const ra = PF.recs[PF.from], rb = PF.recs[PF.cur], pa = A[ra.place - 1], pb = B[rb.place - 1]
+  let hx = pa.x + (pb.x - pa.x) * e, hy = pa.y + (pb.y - pa.y) * e
+  const cx = W * .6, cy = H * .5, rim = Math.min(W * .28, H * .42) + 14, ang = Math.atan2(hy - cy, hx - cx) - PF.travel * 2, d = Math.hypot(hx - cx, hy - cy), rr = d + (rim - d) * PF.travel
+  hx = cx + rr * Math.cos(ang); hy = cy + rr * Math.sin(ang)
+  const pulse = (Math.sin(t * .003) + 1) / 2
+  ctx.beginPath(); ctx.arc(hx, hy, 9 + pulse * 6, 0, 6.283); ctx.strokeStyle = `rgba(${DOT},${.28 - pulse * .22})`; ctx.lineWidth = 1; ctx.stroke()
+  ctx.beginPath(); ctx.arc(hx, hy, 4.5, 0, 6.283); ctx.fillStyle = `rgb(${DOT})`; ctx.fill()
+  const li = Q(".recs li.on .rt b"); if (li) li.textContent = `${rb.tied ? "T-" : ""}${ord(Math.round(rb.place + (rb.of - rb.place) * PF.travel))} of ${rb.of}`
+  PF.raf = requestAnimationFrame(pdraw)
+}
+function pick(i) {
+  PF.from = PF.cur; PF.cur = i; PF.k = PF.from === i ? 1 : 0
+  QA(".recs li").forEach((li, j) => { li.classList.toggle("on", j === i); const r = PF.recs[j]; li.querySelector(".rt b").textContent = `${r.tied ? "T-" : ""}${ord(r.place)} of ${r.of}` })
+  const r = PF.recs[i]
+  Q("#flegend").innerHTML = (r.short === "IOI" ? [["Gold", 3], ["Silver", 2], ["Bronze", 1], ["No medal", 0]] : [["Top tenth", 1], ["Rest of the field", 0]]).map(([l, b]) => `<span><i style="background:rgb(${BAND[b]})"></i>${l}</span>`).join("")
+}
+function openPane(name) {
+  sel = name; QA("tr.r").forEach(tr => tr.classList.toggle("on", tr.dataset.n === name))
+  const p = ALL.find(x => x.name === name), isO = name === Z.open.name, chat = Q("#chat"), was = chat.classList.contains("withpane")
+  PF.recs = isO ? Z.open.records : [{ event: p.event, short: p.comp, year: p.year, month: p.comp === "IOI" ? "Aug" : "Apr", place: p.place, of: p.of, tied: p.tied, medal: p.medal + (p.comp === "IOI" ? " medal" : " division"), ver: p.ver === "Official source" ? "Official source matched" : p.ver }]
+  const ck = [["Free June to August", "Supported"], ["A verified USACO result", isO || p.comp === "USACO" ? "Supported" : "Not found"], ["A verified IOI result", p.comp === "IOI" ? "Supported" : "Not found"], ["An individual result", "Supported"], ["Results in two seasons", p.seasons.length > 1 ? "Supported" : "Not found"]]
+  Q("#pane").innerHTML = `<div class="ph2"><span>Record</span><span class="sp"></span><button class="ib" id="pclose" title="Close">✕</button></div>
+    <div class="pbody"><h2>${p.name}</h2><dl class="props"><dt>Available</dt><dd>June to August 2027</dd></dl>
+    <div class="fieldbox"><canvas id="pfcv"></canvas><div class="flegend" id="flegend"></div></div>
+    <div class="sec"><h6>Results</h6><ul class="recs">${PF.recs.map(r => `<li><div><b>${r.event}</b><span>${r.medal} · ${r.ver}</span></div><div class="rt"><b></b><span>${r.month} ${r.year}</span></div></li>`).join("")}</ul></div>
+    <div class="sec"><h6>Against the plan</h6><ul class="ck">${ck.map(([l, s]) => `<li><span>${l}</span><em class="${s === "Supported" ? "" : "no"}">${s}</em></li>`).join("")}</ul></div></div>
+    <div class="pa"><button class="pri">Request an introduction</button><button class="b2" id="psave">${p.status === "Saved" ? "Saved" : "Save"}</button></div>`
+  chat.classList.add("withpane")
+  if (!was && !reduce) Q("#pane").animate([{ transform: "translateX(40px)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 420, easing: EASE })
+  else if (!reduce) Q(".pbody").animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: EASE })
+  Q("#pclose").onclick = () => { chat.classList.remove("withpane"); sel = null; QA("tr.r.on").forEach(t => t.classList.remove("on")) }
+  Q("#psave").onclick = () => { if (p.status) return; p.status = "Saved"; Q("#psave").textContent = "Saved"; QA(`tr[data-n="${p.name}"] .st`).forEach(td => { td.innerHTML = `<span class="pill"><i class="dot"></i>Saved</span>`; if (!reduce) td.firstChild.animate([{ transform: "scale(0)" }, { transform: "none" }], { duration: 420, easing: "cubic-bezier(.3,1.6,.5,1)" }) }); bumpSaved() }
+  PF.cv = Q("#pfcv"); PF.ctx = PF.cv.getContext("2d")
+  const dpr = Math.min(2, devicePixelRatio || 1); PF.W = PF.cv.clientWidth; PF.H = PF.cv.clientHeight; PF.cv.width = PF.W * dpr; PF.cv.height = PF.H * dpr; PF.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  PF.cur = PF.from = 0; PF.k = 1; PF.travel = 1
+  QA(".recs li").forEach((li, i) => li.onclick = () => { if (i !== PF.cur) { pick(i); PF.travel = 0 } })
+  pick(0); cancelAnimationFrame(PF.raf); PF.raf = requestAnimationFrame(pdraw)
+}
+</script>
+<script src="app.js"></script>
+</body>
+</html>
